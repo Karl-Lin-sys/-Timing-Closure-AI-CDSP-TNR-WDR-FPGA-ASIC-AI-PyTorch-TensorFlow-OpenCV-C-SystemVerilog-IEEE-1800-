@@ -8,6 +8,12 @@
 
 Clean-room, MIT-licensed reference architecture for **AI + Color Digital Signal Processing (CDSP: TNR / WDR / Super-Resolution / LWIR Thermal Camera ISP)** and **Dyadic Fixed-Point AI Model Compilation** targeting edge FPGA/ASIC hardware.
 
+## Visual Pipeline Benchmark (Before / After CDSP + Dyadic INT8 AI)
+
+![CDSP Before and After Visual Demo](assets/cdsp_before_after_demo.png)
+
+> **Quantitative Progression**: Raw Sensor w/ Dead Pixels & Clipped WDR (**14.92 dB**) $\rightarrow$ 3-Tap Morphological NUC + Dual-Exposure WDR + 4-Frame IIR TNR (**30.78 dB**) $\rightarrow$ Structural Re-parameterized 3x3 INT8 Conv + Dyadic RNE (**33.09 dB**, **+18.17 dB gain**).
+
 ---
 
 ## Legal Compliance (Taiwan Copyright Act & Trade Secret Act)

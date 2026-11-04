@@ -22,16 +22,18 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install Python Dependencies (CPU-only PyTorch & NumPy)
+      - name: Install Python Dependencies (CPU-only PyTorch, NumPy & OpenCV)
         run: |
           python -m pip install --upgrade pip
-          pip install numpy
+          pip install numpy opencv-python-headless
           pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-      - name: Step 1 - Run AI Model Compiler & Verify NIST SHA-256 ROM Export
+      - name: Step 1 - Run AI Model Compiler & Visual CDSP Demo
         run: |
           python compiler/ai_cdsp_compiler.py
+          python compiler/demo_visual_comparison.py
           test -f compiled_cdsp_rom.json
+          test -f assets/cdsp_before_after_demo.png
 
       - name: Step 2 - Compile & Run C++20 Zero-Heap Edge CDSP Engine
         run: |
