@@ -1,5 +1,6 @@
 # Timing-Closed AI+CDSP (TNR/WDR/Thermal SR) FPGA/ASIC Architecture & Model Compiler
 
+[![AI+CDSP Compiler, C++20 & IEEE 1800-2023 RTL CI](https://github.com/Karl-Lin-sys/-Timing-Closure-AI-CDSP-TNR-WDR-FPGA-ASIC-AI-PyTorch-TensorFlow-OpenCV-C-SystemVerilog-IEEE-1800-/actions/workflows/ci.yml/badge.svg)](https://github.com/Karl-Lin-sys/-Timing-Closure-AI-CDSP-TNR-WDR-FPGA-ASIC-AI-PyTorch-TensorFlow-OpenCV-C-SystemVerilog-IEEE-1800-/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Standard: IEEE 1800-2023](https://img.shields.io/badge/SystemVerilog-IEEE%201800--2023-green.svg)](rtl/ai_cdsp_pe_array.sv)
 [![Standard: C++20](https://img.shields.io/badge/C%2B%2B-ISO%2FIEC%2014882%3A2020-blue.svg)](firmware/cdsp_edge_infer.cpp)

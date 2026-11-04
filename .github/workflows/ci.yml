@@ -1,0 +1,46 @@
+name: AI+CDSP Compiler, C++20 & IEEE 1800-2023 RTL CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  verify-full-stack:
+    name: Python Compiler + C++20 Golden + SystemVerilog RTL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python Dependencies (CPU-only PyTorch & NumPy)
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Step 1 - Run AI Model Compiler & Verify NIST SHA-256 ROM Export
+        run: |
+          python compiler/ai_cdsp_compiler.py
+          test -f compiled_cdsp_rom.json
+
+      - name: Step 2 - Compile & Run C++20 Zero-Heap Edge CDSP Engine
+        run: |
+          g++ -std=c++20 -O3 -Wall -Wextra -Wpedantic -Werror firmware/cdsp_edge_infer.cpp -o cdsp_edge_infer
+          ./cdsp_edge_infer
+
+      - name: Step 3 - Install Icarus Verilog & Run IEEE 1800-2012/2023 RTL Simulation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+          iverilog -g2012 -o sim_pe_array.vvp rtl/ai_cdsp_pe_array.sv rtl/tb_ai_cdsp_pe_array.sv
+          vvp sim_pe_array.vvp
