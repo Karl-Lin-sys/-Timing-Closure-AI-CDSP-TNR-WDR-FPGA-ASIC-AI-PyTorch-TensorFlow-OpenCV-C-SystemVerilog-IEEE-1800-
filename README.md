@@ -10,8 +10,8 @@ Clean-room, MIT-licensed reference architecture for **AI + Color Digital Signal 
 ---
 
 ## Legal Compliance (Taiwan Copyright Act & Trade Secret Act)
-1. **Clean-Room Implementation (中華民國著作權法 第10條之1)**: All Python, C++20, and IEEE 1800-2023 SystemVerilog modules in this repository are authored from scratch based on public mathematical formulations in peer-reviewed proceedings and IEEE/ISO standards.
-2. **Zero Proprietary IP Contamination (營業秘密法 第2條、第13條之1)**: Contains no proprietary RTL netlists, foundry PDKs, or confidential ISP tuning parameters.
+1. **Clean-Room Implementation**: All Python, C++20, and IEEE 1800-2023 SystemVerilog modules in this repository are authored from scratch based on public mathematical formulations in peer-reviewed proceedings and IEEE/ISO standards.
+2. **Zero Proprietary IP Contamination**: Contains no proprietary RTL netlists, foundry PDKs, or confidential ISP tuning parameters.
 
 ---
 
