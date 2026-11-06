@@ -2,8 +2,9 @@
 // Copyright (c) 2026 Karl-Lin-sys
 // Standard: IEEE Std 1800-2023 SystemVerilog
 // Module: tb_ai_cdsp_pe_array
-// Description: Self-checking testbench verifying bit-accurate Dyadic RNE Requantization,
-//              NIST CSF 2.0 Weight Parity Hardware Trojan detection, and AXI Deadlock Watchdog.
+// Description: Self-checking Co-Simulation Testbench loading actual compiled PyTorch ROM
+//              parameters (`generated_rom_vectors.svh`), dumping VCD waveforms (`ai_cdsp_wave.vcd`),
+//              and writing `rtl_sim_outputs.txt` for bit-exact verification against C++ Golden Model.
 
 `default_nettype none
 `timescale 1ns / 1ps
@@ -15,6 +16,8 @@ module tb_ai_cdsp_pe_array;
     localparam int unsigned M0_W           = 15;
     localparam int unsigned SHIFT_W        = 5;
     localparam int unsigned WATCHDOG_LIMIT = 16;
+
+    `include "rtl/generated_rom_vectors.svh"
 
     logic                     clk;
     logic                     rst_n;
@@ -68,13 +71,46 @@ module tb_ai_cdsp_pe_array;
     initial clk = 1'b0;
     always #5 clk = ~clk;
 
+    int fd;
+
+    task automatic run_single_window(
+        input int unsigned       vec_idx,
+        input logic [71:0]       win_flat,
+        input logic signed [7:0] exp_out
+    );
+        begin
+            s_axis_tvalid = 1'b1;
+            s_axis_window = win_flat;
+            s_axis_tlast  = (vec_idx == 3);
+            @(posedge clk);
+            s_axis_tvalid = 1'b0;
+            s_axis_tlast  = 1'b0;
+
+            wait (m_axis_tvalid === 1'b1);
+            @(posedge clk);
+            $fdisplay(fd, "%0d", m_axis_tdata);
+            $display("     Vector[%0d] -> SystemVerilog RTL Output = %0d (Expected = %0d)",
+                     vec_idx, m_axis_tdata, exp_out);
+            if (m_axis_tdata !== exp_out) begin
+                $display("[FAIL] Bit-accurate mismatch at Vector[%0d]! Expected %0d, got %0d",
+                         vec_idx, exp_out, m_axis_tdata);
+                $fatal(1);
+            end
+        end
+    endtask
+
     initial begin
+        $dumpfile("ai_cdsp_wave.vcd");
+        $dumpvars(0, tb_ai_cdsp_pe_array);
+
+        fd = $fopen("rtl_sim_outputs.txt", "w");
+
         rst_n               = 1'b0;
         cfg_we              = 1'b0;
         cfg_weights         = '0;
         cfg_bias            = '0;
-        cfg_dyadic_m0       = 15'd16384; // 2^14
-        cfg_dyadic_shift    = 5'd16;     // shift by 16 -> scale = 1/4
+        cfg_dyadic_m0       = 15'd16384;
+        cfg_dyadic_shift    = 5'd14;
         cfg_expected_parity = 8'd0;
         s_axis_tvalid       = 1'b0;
         s_axis_window       = '0;
@@ -85,44 +121,35 @@ module tb_ai_cdsp_pe_array;
         rst_n = 1'b1;
         @(posedge clk);
 
-        // 1. Load 9 weights = 2, bias = 16 -> XOR of nine 2s is 2
+        // 1. Load Compiled PyTorch Weights & Dyadic Parameters from `generated_rom_vectors.svh`
         cfg_we              = 1'b1;
-        cfg_weights         = {9{8'sd2}};
-        cfg_bias            = 24'sd16;
-        cfg_dyadic_m0       = 15'd16384;
-        cfg_dyadic_shift    = 5'd16;
-        cfg_expected_parity = 8'h02;
+        cfg_weights         = COMPILED_WEIGHTS_FLAT;
+        cfg_bias            = COMPILED_BIAS;
+        cfg_dyadic_m0       = COMPILED_DYADIC_M0;
+        cfg_dyadic_shift    = COMPILED_DYADIC_RSHIFT;
+        cfg_expected_parity = COMPILED_EXPECTED_PARITY;
         @(posedge clk);
         cfg_we = 1'b0;
         @(posedge clk);
 
         if (sec_trojan_parity_err !== 1'b0) begin
-            $display("[FAIL] Unexpected Trojan parity error on valid weights!");
+            $display("[FAIL] Unexpected Trojan parity error on valid compiled weights!");
             $fatal(1);
         end
+        $display("[OK] Loaded PyTorch Compiled ROM into RTL Registers (Parity = 0x%02h)", COMPILED_EXPECTED_PARITY);
 
-        // 2. Stream a 3x3 window with all pixels = 10:
-        // Expected acc = 9 * (10 * 2) + 16 = 180 + 16 = 196
-        // Expected requant = RNE(196 * 16384 >> 16) = 196 / 4 = 49
-        s_axis_tvalid = 1'b1;
-        s_axis_window = {9{8'sd10}};
-        s_axis_tlast  = 1'b1;
-        @(posedge clk);
-        s_axis_tvalid = 1'b0;
-        s_axis_tlast  = 1'b0;
+        // 2. Execute all 4 Co-Simulation Windows through the 4-stage pipeline
+        run_single_window(0, TEST_WINDOW_0, EXPECTED_OUT_0);
+        run_single_window(1, TEST_WINDOW_1, EXPECTED_OUT_1);
+        run_single_window(2, TEST_WINDOW_2, EXPECTED_OUT_2);
+        run_single_window(3, TEST_WINDOW_3, EXPECTED_OUT_3);
 
-        // Wait 4 pipeline stages for valid output
-        wait (m_axis_tvalid === 1'b1);
-        @(posedge clk);
-        if (m_axis_tdata !== 8'sd49) begin
-            $display("[FAIL] Bit-accurate mismatch! Expected 49, got %0d", m_axis_tdata);
-            $fatal(1);
-        end
-        $display("[PASS] 4-Stage Systolic Pipeline Bit-Exact Output Verified: m_axis_tdata = %0d (Matches C++20 Golden Model)", m_axis_tdata);
+        $fclose(fd);
+        $display("[PASS] All %0d Co-Simulation Windows Bit-Exact Verified!", NUM_CO_SIM_VECTORS);
 
-        // 3. Verify Hardware Trojan Parity Mismatch Detection
+        // 3. Verify NIST CSF 2.0 Hardware Trojan Parity Mismatch Detection
         cfg_we              = 1'b1;
-        cfg_expected_parity = 8'hFF; // Inject corrupted parity
+        cfg_expected_parity = COMPILED_EXPECTED_PARITY ^ 8'hFF; // Inject corrupted parity
         @(posedge clk);
         cfg_we              = 1'b0;
         @(posedge clk);
@@ -132,7 +159,23 @@ module tb_ai_cdsp_pe_array;
         end
         $display("[PASS] NIST CSF 2.0 Hardware Trojan Weight Parity Detector Verified (sec_trojan_parity_err = 1)");
 
-        $display("[OK] All IEEE 1800-2023 SystemVerilog Assertions Passed.");
+        // 4. Verify AXI4-Stream Deadlock Watchdog Timer (`sec_axi_deadlock_irq_o`)
+        s_axis_tvalid = 1'b1;
+        s_axis_window = TEST_WINDOW_0;
+        @(posedge clk);
+        s_axis_tvalid = 1'b0;
+        wait (m_axis_tvalid === 1'b1);
+        m_axis_tready = 1'b0; // Stall downstream sink intentionally
+        repeat (WATCHDOG_LIMIT + 2) @(posedge clk);
+        if (sec_axi_deadlock_irq !== 1'b1) begin
+            $display("[FAIL] AXI Deadlock Watchdog failed to trigger!");
+            $fatal(1);
+        end
+        $display("[PASS] AXI4-Stream Deadlock Watchdog Verified (sec_axi_deadlock_irq = 1 after %0d stall cycles)", WATCHDOG_LIMIT);
+        m_axis_tready = 1'b1;
+        @(posedge clk);
+
+        $display("[OK] Waveform saved to ai_cdsp_wave.vcd | All IEEE 1800-2023 Assertions Passed.");
         $finish;
     end
 

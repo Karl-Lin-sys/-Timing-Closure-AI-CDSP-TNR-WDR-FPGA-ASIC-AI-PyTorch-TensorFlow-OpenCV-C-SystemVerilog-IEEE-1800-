@@ -14,6 +14,12 @@ Clean-room, MIT-licensed reference architecture for **AI + Color Digital Signal 
 
 > **Quantitative Progression**: Raw Sensor w/ Dead Pixels & Clipped WDR (**14.92 dB**) $\rightarrow$ 3-Tap Morphological NUC + Dual-Exposure WDR + 4-Frame IIR TNR (**30.78 dB**) $\rightarrow$ Structural Re-parameterized 3x3 INT8 Conv + Dyadic RNE (**33.09 dB**, **+18.17 dB gain**).
 
+## Hardware/Software Bit-Exact Co-Simulation & RTL Waveform (`ai_cdsp_wave.vcd`)
+
+![IEEE 1800 SystemVerilog 4-Stage Pipeline Waveform](assets/rtl_pipeline_waveform.png)
+
+> **One-Command Live Verification (`python run_full_co_sim.py`)**: Automatically compiles the PyTorch `SmoothRepConvBlock` into C++ (`firmware/generated_rom_weights.h`) and SystemVerilog (`rtl/generated_rom_vectors.svh`), executes the C++ golden model (`g++`) and Icarus Verilog simulation (`iverilog`/`vvp`), dumps `ai_cdsp_wave.vcd` for GTKWave inspection, and proves **100% bit-exact equivalence (`[43, 116, 94, 127] == [43, 116, 94, 127]`, 0 LSB error)**.
+
 ---
 
 ## Legal Compliance (Taiwan Copyright Act & Trade Secret Act)

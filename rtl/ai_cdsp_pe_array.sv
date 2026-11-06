@@ -68,13 +68,11 @@ module ai_cdsp_pe_array #(
         end
     end
 
-    // Combinational XOR reduction across all 9 INT8 weights (zero latch risk)
-    always_comb begin
-        computed_parity_c = weight_q[0 +: 8]  ^ weight_q[8 +: 8]  ^ weight_q[16 +: 8] ^
-                            weight_q[24 +: 8] ^ weight_q[32 +: 8] ^ weight_q[40 +: 8] ^
-                            weight_q[48 +: 8] ^ weight_q[56 +: 8] ^ weight_q[64 +: 8];
-        sec_trojan_parity_err_o = (computed_parity_c != expected_parity_q);
-    end
+    // Combinational XOR reduction across all 9 INT8 weights (zero latch risk, zero simulator warnings)
+    assign computed_parity_c = weight_q[7:0]   ^ weight_q[15:8]  ^ weight_q[23:16] ^
+                               weight_q[31:24] ^ weight_q[39:32] ^ weight_q[47:40] ^
+                               weight_q[55:48] ^ weight_q[63:56] ^ weight_q[71:64];
+    assign sec_trojan_parity_err_o = (computed_parity_c != expected_parity_q);
 
     // -------------------------------------------------------------------------
     // 2. Deadlock-Free Pipeline Handshake & Watchdog Timer (NIST DE.CM)
@@ -151,7 +149,7 @@ module ai_cdsp_pe_array #(
             half_val_c = (40'sd1 <<< (dyadic_shift_q - 5'd1));
             rem_mask_c = (40'sd1 <<< dyadic_shift_q) - 40'sd1;
             rem_val_c  = s4_mul_c & rem_mask_c;
-            quot_odd_c = s4_mul_c[dyadic_shift_q];
+            quot_odd_c = ((s4_mul_c >>> dyadic_shift_q) & 40'sd1) != 40'sd0;
             round_up_c = (rem_val_c > half_val_c) || ((rem_val_c == half_val_c) && quot_odd_c);
 
             s4_shifted_c = (s4_mul_c >>> dyadic_shift_q) + (round_up_c ? 40'sd1 : 40'sd0);
@@ -163,7 +161,7 @@ module ai_cdsp_pe_array #(
         end else if (s4_shifted_c > 127) begin
             s4_clamped_c = 8'sd127;
         end else begin
-            s4_clamped_c = s4_shifted_c[DATA_W-1:0];
+            s4_clamped_c = s4_shifted_c[7:0];
         end
     end
 

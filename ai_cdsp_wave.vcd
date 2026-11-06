@@ -1,0 +1,602 @@
+$date
+	Fri Nov 06 16:53:49 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_ai_cdsp_pe_array $end
+$var wire 1 ! sec_trojan_parity_err $end
+$var wire 1 " sec_axi_deadlock_irq $end
+$var wire 1 # s_axis_tready $end
+$var wire 1 $ m_axis_tvalid $end
+$var wire 1 % m_axis_tlast $end
+$var wire 8 & m_axis_tdata [7:0] $end
+$var parameter 32 ' ACC_W $end
+$var parameter 24 ( COMPILED_BIAS $end
+$var parameter 15 ) COMPILED_DYADIC_M0 $end
+$var parameter 5 * COMPILED_DYADIC_RSHIFT $end
+$var parameter 8 + COMPILED_EXPECTED_PARITY $end
+$var parameter 72 , COMPILED_WEIGHTS_FLAT $end
+$var parameter 32 - DATA_W $end
+$var parameter 8 . EXPECTED_OUT_0 $end
+$var parameter 8 / EXPECTED_OUT_1 $end
+$var parameter 8 0 EXPECTED_OUT_2 $end
+$var parameter 8 1 EXPECTED_OUT_3 $end
+$var parameter 32 2 M0_W $end
+$var parameter 32 3 NUM_CO_SIM_VECTORS $end
+$var parameter 32 4 SHIFT_W $end
+$var parameter 72 5 TEST_WINDOW_0 $end
+$var parameter 72 6 TEST_WINDOW_1 $end
+$var parameter 72 7 TEST_WINDOW_2 $end
+$var parameter 72 8 TEST_WINDOW_3 $end
+$var parameter 32 9 WATCHDOG_LIMIT $end
+$var reg 24 : cfg_bias [23:0] $end
+$var reg 15 ; cfg_dyadic_m0 [14:0] $end
+$var reg 5 < cfg_dyadic_shift [4:0] $end
+$var reg 8 = cfg_expected_parity [7:0] $end
+$var reg 1 > cfg_we $end
+$var reg 72 ? cfg_weights [71:0] $end
+$var reg 1 @ clk $end
+$var reg 1 A m_axis_tready $end
+$var reg 1 B rst_n $end
+$var reg 1 C s_axis_tlast $end
+$var reg 1 D s_axis_tvalid $end
+$var reg 72 E s_axis_window [71:0] $end
+$var integer 32 F fd [31:0] $end
+$scope module dut $end
+$var wire 24 G cfg_bias_i [23:0] $end
+$var wire 15 H cfg_dyadic_m0_i [14:0] $end
+$var wire 5 I cfg_dyadic_shift_i [4:0] $end
+$var wire 8 J cfg_expected_parity_i [7:0] $end
+$var wire 1 > cfg_we_i $end
+$var wire 72 K cfg_weights_i [71:0] $end
+$var wire 1 @ clk_i $end
+$var wire 8 L computed_parity_c [7:0] $end
+$var wire 1 A m_axis_tready_i $end
+$var wire 1 M pipe_advance_c $end
+$var wire 1 B rst_ni $end
+$var wire 1 C s_axis_tlast_i $end
+$var wire 1 # s_axis_tready_o $end
+$var wire 1 D s_axis_tvalid_i $end
+$var wire 72 N s_axis_window_i [71:0] $end
+$var wire 1 ! sec_trojan_parity_err_o $end
+$var wire 1 $ m_axis_tvalid_o $end
+$var wire 1 % m_axis_tlast_o $end
+$var parameter 32 O ACC_W $end
+$var parameter 32 P DATA_W $end
+$var parameter 32 Q M0_W $end
+$var parameter 32 R SHIFT_W $end
+$var parameter 32 S WATCHDOG_LIMIT $end
+$var reg 24 T bias_q [23:0] $end
+$var reg 15 U dyadic_m0_q [14:0] $end
+$var reg 5 V dyadic_shift_q [4:0] $end
+$var reg 8 W expected_parity_q [7:0] $end
+$var reg 40 X half_val_c [39:0] $end
+$var reg 4 Y last_pipe_q [3:0] $end
+$var reg 8 Z m_axis_tdata_o [7:0] $end
+$var reg 1 [ quot_odd_c $end
+$var reg 40 \ rem_mask_c [39:0] $end
+$var reg 40 ] rem_val_c [39:0] $end
+$var reg 1 ^ round_up_c $end
+$var reg 16 _ s1_prod_0_q [15:0] $end
+$var reg 16 ` s1_prod_1_q [15:0] $end
+$var reg 16 a s1_prod_2_q [15:0] $end
+$var reg 16 b s1_prod_3_q [15:0] $end
+$var reg 16 c s1_prod_4_q [15:0] $end
+$var reg 16 d s1_prod_5_q [15:0] $end
+$var reg 16 e s1_prod_6_q [15:0] $end
+$var reg 16 f s1_prod_7_q [15:0] $end
+$var reg 16 g s1_prod_8_q [15:0] $end
+$var reg 18 h s2_part_sum_0_q [17:0] $end
+$var reg 18 i s2_part_sum_1_q [17:0] $end
+$var reg 18 j s2_part_sum_2_q [17:0] $end
+$var reg 24 k s3_acc_q [23:0] $end
+$var reg 8 l s4_clamped_c [7:0] $end
+$var reg 40 m s4_mul_c [39:0] $end
+$var reg 40 n s4_shifted_c [39:0] $end
+$var reg 1 " sec_axi_deadlock_irq_o $end
+$var reg 4 o vld_pipe_q [3:0] $end
+$var reg 16 p watchdog_cnt_q [15:0] $end
+$var reg 72 q weight_q [71:0] $end
+$upscope $end
+$scope task run_single_window $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b10000 S
+b101 R
+b1111 Q
+b1000 P
+b11000 O
+b10000 9
+b10110100101000001011010010100000110111001010000010110100101000001011010 8
+b10101010100101101000001001101110010110100100011000110010000111100000101 7
+b1000000010000000100000001000000100000000100000001000000010000000100000 6
+b10100000110000001010000011000001100000001100000010100000110000001010 5
+b101 4
+b100 3
+b1111 2
+b1111111 1
+b1011110 0
+b1110100 /
+b101011 .
+b1000 -
+b11110000101011111000000000110111111100010000111111000000111000001101 ,
+b1101110 +
+b10101 *
+b101111001111000 )
+b0 (
+b11000 '
+$end
+#0
+$dumpvars
+b0 q
+b0 p
+b0 o
+b0 n
+b0 m
+b0 l
+b0 k
+b0 j
+b0 i
+b0 h
+b0 g
+b0 f
+b0 e
+b0 d
+b0 c
+b0 b
+b0 a
+b0 `
+b0 _
+0^
+b0 ]
+b11111111111111 \
+0[
+b0 Z
+b0 Y
+b10000000000000 X
+b0 W
+b1110 V
+b100000000000000 U
+b0 T
+b0 N
+1M
+b0 L
+b0 K
+b0 J
+b1110 I
+b100000000000000 H
+b0 G
+b10000000000000000000000000000011 F
+b0 E
+0D
+0C
+0B
+1A
+0@
+b0 ?
+0>
+b0 =
+b1110 <
+b100000000000000 ;
+b0 :
+b0 &
+0%
+0$
+1#
+0"
+0!
+$end
+#5000
+1@
+#10000
+0@
+#15000
+1@
+#20000
+0@
+#25000
+1B
+1@
+#30000
+0@
+#35000
+b1101110 L
+b111111111111111111111 \
+b100000000000000000000 X
+0!
+b1101110 W
+b10101 V
+b101111001111000 U
+b11110000101011111000000000110111111100010000111111000000111000001101 q
+b1101110 =
+b1101110 J
+b10101 <
+b10101 I
+b101111001111000 ;
+b101111001111000 H
+b11110000101011111000000000110111111100010000111111000000111000001101 ?
+b11110000101011111000000000110111111100010000111111000000111000001101 K
+1>
+1@
+#40000
+0@
+#45000
+0>
+1@
+#50000
+0@
+#55000
+b10010110 g
+b1111000 f
+b1111111110110000 e
+b100100 d
+b101111101000 c
+b11000000 b
+b1111111111011000 a
+b10101000 `
+b10000010 _
+b1 o
+b10100000110000001010000011000001100000001100000010100000110000001010 E
+b10100000110000001010000011000001100000001100000010100000110000001010 N
+1D
+1@
+#60000
+0@
+#65000
+b10111110 j
+b110011001100 i
+b100000010 h
+b10 o
+0D
+1@
+#70000
+0@
+#75000
+b101011 l
+b101011 n
+1^
+b111100011100110100000 ]
+b101010111100011100110100000 m
+b111111111111111111111 \
+b100000000000000000000 X
+b111010001100 k
+b100 o
+1@
+#80000
+0@
+#85000
+1$
+b101011 &
+b101011 Z
+b1000 o
+1@
+#90000
+0@
+#95000
+0$
+b111100000 g
+b101000000 f
+b1111111100000000 e
+b1100000 d
+b1111111000000 c
+b1000000000 b
+b1111111110000000 a
+b111000000 `
+b110100000 _
+b1 o
+b1000000010000000100000001000000100000000100000001000000010000000100000 E
+b1000000010000000100000001000000100000000100000001000000010000000100000 N
+1D
+1@
+#100000
+0@
+#105000
+b1000100000 j
+b10001000100000 i
+b1011100000 h
+b10 o
+0D
+1@
+#110000
+0@
+#115000
+1[
+1^
+b100000001011100000000 ]
+b111111111111111111111 \
+b100000000000000000000 X
+b1110100 l
+b1110100 n
+b1110011100000001011100000000 m
+b10011100100000 k
+b100 o
+1@
+#120000
+0@
+#125000
+1$
+b1110100 &
+b1110100 Z
+b1000 o
+1@
+#130000
+0@
+#135000
+0$
+b10011111011 g
+b1011101110 f
+b1111110111111000 e
+b10100101 d
+b1011001010011 c
+b1000110000 b
+b1111111110011100 a
+b11010010 `
+b1000001 _
+b1 o
+b10101010100101101000001001101110010110100100011000110010000111100000101 E
+b10101010100101101000001001101110010110100100011000110010000111100000101 N
+1D
+1@
+#140000
+0@
+#145000
+b10111100001 j
+b1100100101000 i
+b10101111 h
+b10 o
+0D
+1@
+#150000
+0@
+#155000
+1^
+1[
+b101000110111001000000 ]
+b111111111111111111111 \
+b100000000000000000000 X
+b1011110 l
+b1011110 n
+b1011101101000110111001000000 m
+b1111110111000 k
+b100 o
+1@
+#160000
+0@
+#165000
+1$
+b1011110 &
+b1011110 Z
+b1000 o
+1@
+#170000
+0@
+#175000
+0$
+b10101000110 g
+b1100100000 f
+b1111110100110000 e
+b11110000 d
+b11011010010010 c
+b10100000000 b
+b1111111010011000 a
+b10001100000 `
+b10010010010 _
+b1 Y
+b1 o
+1C
+b10110100101000001011010010100000110111001010000010110100101000001011010 E
+b10110100101000001011010010100000110111001010000010110100101000001011010 N
+1D
+1@
+#180000
+0@
+#185000
+b10110010110 j
+b11110010000010 i
+b11110001010 h
+b10 Y
+b10 o
+0C
+0D
+1@
+#190000
+0@
+#195000
+0^
+1[
+b10111111111111110000 ]
+b111111111111111111111 \
+b100000000000000000000 X
+b1111111 l
+b11011001 n
+b11011001010111111111111110000 m
+b100100110100010 k
+b100 Y
+b100 o
+1@
+#200000
+0@
+#205000
+1%
+1$
+b1111111 &
+b1111111 Z
+b1000 Y
+b1000 o
+1@
+#210000
+0@
+#215000
+0%
+0$
+1!
+b10010001 W
+b0 Y
+b0 o
+b10010001 =
+b10010001 J
+1>
+1@
+#220000
+0@
+#225000
+0>
+1@
+#230000
+0@
+#235000
+b10010110 g
+b1111000 f
+b1111111110110000 e
+b100100 d
+b101111101000 c
+b11000000 b
+b1111111111011000 a
+b10101000 `
+b10000010 _
+b1 o
+b10100000110000001010000011000001100000001100000010100000110000001010 E
+b10100000110000001010000011000001100000001100000010100000110000001010 N
+1D
+1@
+#240000
+0@
+#245000
+b10111110 j
+b110011001100 i
+b100000010 h
+b10 o
+0D
+1@
+#250000
+0@
+#255000
+1^
+0[
+b111100011100110100000 ]
+b111111111111111111111 \
+b100000000000000000000 X
+b101011 l
+b101011 n
+b101010111100011100110100000 m
+b111010001100 k
+b100 o
+1@
+#260000
+0@
+#265000
+0#
+0M
+0A
+1$
+b101011 &
+b101011 Z
+b1000 o
+1@
+#270000
+0@
+#275000
+b1 p
+1@
+#280000
+0@
+#285000
+b10 p
+1@
+#290000
+0@
+#295000
+b11 p
+1@
+#300000
+0@
+#305000
+b100 p
+1@
+#310000
+0@
+#315000
+b101 p
+1@
+#320000
+0@
+#325000
+b110 p
+1@
+#330000
+0@
+#335000
+b111 p
+1@
+#340000
+0@
+#345000
+b1000 p
+1@
+#350000
+0@
+#355000
+b1001 p
+1@
+#360000
+0@
+#365000
+b1010 p
+1@
+#370000
+0@
+#375000
+b1011 p
+1@
+#380000
+0@
+#385000
+b1100 p
+1@
+#390000
+0@
+#395000
+b1101 p
+1@
+#400000
+0@
+#405000
+b1110 p
+1@
+#410000
+0@
+#415000
+b1111 p
+1@
+#420000
+0@
+#425000
+b10000 p
+1@
+#430000
+0@
+#435000
+1"
+1@
+#440000
+0@
+#445000
+0"
+b0 p
+1#
+1M
+1A
+1@
+#450000
+0@
+#455000
+0$
+b0 o
+1@

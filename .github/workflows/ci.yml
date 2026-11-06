@@ -27,21 +27,13 @@ jobs:
           pip install numpy opencv-python-headless
           pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-      - name: Step 1 - Run AI Model Compiler & Visual CDSP Demo
-        run: |
-          python compiler/ai_cdsp_compiler.py
-          python compiler/demo_visual_comparison.py
-          test -f compiled_cdsp_rom.json
-          test -f assets/cdsp_before_after_demo.png
-
-      - name: Step 2 - Compile & Run C++20 Zero-Heap Edge CDSP Engine
-        run: |
-          g++ -std=c++20 -O3 -Wall -Wextra -Wpedantic -Werror firmware/cdsp_edge_infer.cpp -o cdsp_edge_infer
-          ./cdsp_edge_infer
-
-      - name: Step 3 - Install Icarus Verilog & Run IEEE 1800 RTL Simulation
+      - name: Step 1 - Run End-to-End Co-Simulation (PyTorch Compiler -> C++ Golden -> SystemVerilog RTL)
         run: |
           sudo apt-get update
           sudo apt-get install -y iverilog
-          iverilog -g2012 -o sim_pe_array.vvp rtl/ai_cdsp_pe_array.sv rtl/tb_ai_cdsp_pe_array.sv
-          vvp sim_pe_array.vvp
+          python run_full_co_sim.py
+          python compiler/demo_visual_comparison.py
+          test -f compiled_cdsp_rom.json
+          test -f ai_cdsp_wave.vcd
+          test -f assets/cdsp_before_after_demo.png
+          test -f assets/rtl_pipeline_waveform.png
