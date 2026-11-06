@@ -12,11 +12,12 @@ References:
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -165,6 +166,7 @@ def compile_block_to_asic_rom(
     calib_activations: torch.Tensor,
     cfg: CompilerHardwareConfig,
     output_json_path: Path,
+    custom_window: Optional[List[int]] = None,
 ) -> Dict[str, object]:
     """
     Compiles a SmoothRepConvBlock into an ASIC/FPGA ROM package with SHA-256 integrity
@@ -227,6 +229,7 @@ def compile_block_to_asic_rom(
         m0_arr=m0_arr,
         shift_arr=shift_arr,
         sha256_digest=sha256_digest,
+        custom_window=custom_window,
     )
     return rom_payload
 
@@ -251,6 +254,7 @@ def export_co_sim_headers(
     m0_arr: np.ndarray,
     shift_arr: np.ndarray,
     sha256_digest: str,
+    custom_window: Optional[List[int]] = None,
 ) -> None:
     """
     Generates `firmware/generated_rom_weights.h` and `rtl/generated_rom_vectors.svh`
@@ -271,9 +275,11 @@ def export_co_sim_headers(
     for w in kernel_3x3:
         parity_xor ^= (w & 0xFF)
 
-    # 4 deterministic 3x3 test windows (low, mid, high, ramp)
+    win0 = custom_window if (custom_window is not None and len(custom_window) == 9) else [10, 12, 10, 12, 24, 12, 10, 12, 10]
+
+    # 4 deterministic 3x3 test windows (Vector[0] can be overridden live during interview!)
     test_windows = [
-        [10, 12, 10, 12, 24, 12, 10, 12, 10],
+        win0,
         [32, 32, 32, 32, 64, 32, 32, 32, 32],
         [5,  15, 25, 35, 45, 55, 65, 75, 85],
         [90, 80, 90, 80, 110, 80, 90, 80, 90],
@@ -337,11 +343,22 @@ def export_co_sim_headers(
 
 
 if __name__ == "__main__":
-    torch.manual_seed(42)
+    parser = argparse.ArgumentParser(description="AI+CDSP Structural Re-param & Dyadic INT8 Compiler")
+    parser.add_argument("--seed", type=int, default=42, help="PyTorch random seed for model weights")
+    parser.add_argument(
+        "--custom-pixel",
+        type=int,
+        default=None,
+        help="Optional uniform pixel value [0..127] to inject into Test Window 0 for live demo",
+    )
+    args = parser.parse_args()
+
+    torch.manual_seed(args.seed)
     model_block = SmoothRepConvBlock(channels=8)
     dummy_calib = torch.randn(4, 8, 16, 16).abs() * 2.5
     out_file = Path("compiled_cdsp_rom.json")
+    custom_win = [max(0, min(127, args.custom_pixel))] * 9 if args.custom_pixel is not None else None
     rom = compile_block_to_asic_rom(
-        model_block, dummy_calib, CompilerHardwareConfig(), out_file
+        model_block, dummy_calib, CompilerHardwareConfig(), out_file, custom_window=custom_win
     )
-    print(f"[OK] Compiled ROM written to {out_file} | SHA-256: {rom['sha256_weights'][:16]}... | HW Parity: 0x{rom['hw_xor_parity_signature']:02X}")
+    print(f"[OK] Compiled ROM written to {out_file} | Seed: {args.seed} | SHA-256: {rom['sha256_weights'][:16]}... | HW Parity: 0x{rom['hw_xor_parity_signature']:02X}")

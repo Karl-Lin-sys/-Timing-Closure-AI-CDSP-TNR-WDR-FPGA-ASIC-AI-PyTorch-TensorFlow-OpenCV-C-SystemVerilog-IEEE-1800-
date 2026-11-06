@@ -14,6 +14,7 @@ One-Click End-to-End Hardware/Software Co-Simulation Runner (`run_full_co_sim.py
 
 from __future__ import annotations
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -175,13 +176,26 @@ def render_rtl_waveform_diagram(
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="One-Click End-to-End Python -> C++ -> SystemVerilog Co-Simulation")
+    parser.add_argument("--seed", type=int, default=42, help="PyTorch random seed for model weights")
+    parser.add_argument(
+        "--custom-pixel",
+        type=int,
+        default=None,
+        help="Optional pixel value [0..127] to inject into Vector[0] for live interview demonstration",
+    )
+    args = parser.parse_args()
+
     env = ensure_tool_paths()
     py_exe = sys.executable
 
     # 1. Run Python AI Model Compiler (exports JSON + C++ Header + SystemVerilog Header)
+    compiler_cmd = [py_exe, "compiler/ai_cdsp_compiler.py", "--seed", str(args.seed)]
+    if args.custom_pixel is not None:
+        compiler_cmd += ["--custom-pixel", str(args.custom_pixel)]
     run_step(
         "1/4: PyTorch Structural Re-parameterization & Dyadic ROM Compilation",
-        [py_exe, "compiler/ai_cdsp_compiler.py"],
+        compiler_cmd,
         env,
     )
 
