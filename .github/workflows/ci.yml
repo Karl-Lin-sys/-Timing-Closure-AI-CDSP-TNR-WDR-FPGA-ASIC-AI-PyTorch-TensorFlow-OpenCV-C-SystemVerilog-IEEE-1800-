@@ -20,7 +20,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: "pip"
 
       - name: Install Python Dependencies (CPU-only PyTorch, NumPy & OpenCV)
         run: |
@@ -40,7 +39,7 @@ jobs:
           g++ -std=c++20 -O3 -Wall -Wextra -Wpedantic -Werror firmware/cdsp_edge_infer.cpp -o cdsp_edge_infer
           ./cdsp_edge_infer
 
-      - name: Step 3 - Install Icarus Verilog & Run IEEE 1800-2012/2023 RTL Simulation
+      - name: Step 3 - Install Icarus Verilog & Run IEEE 1800 RTL Simulation
         run: |
           sudo apt-get update
           sudo apt-get install -y iverilog

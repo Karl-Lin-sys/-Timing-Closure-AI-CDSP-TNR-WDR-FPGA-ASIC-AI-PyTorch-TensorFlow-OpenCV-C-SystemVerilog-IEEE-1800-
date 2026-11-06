@@ -16,27 +16,27 @@ module tb_ai_cdsp_pe_array;
     localparam int unsigned SHIFT_W        = 5;
     localparam int unsigned WATCHDOG_LIMIT = 16;
 
-    logic                         clk;
-    logic                         rst_n;
-    logic                         cfg_we;
-    logic signed [8:0][DATA_W-1:0] cfg_weights;
-    logic signed [ACC_W-1:0]      cfg_bias;
-    logic        [M0_W-1:0]       cfg_dyadic_m0;
-    logic        [SHIFT_W-1:0]    cfg_dyadic_shift;
-    logic        [DATA_W-1:0]     cfg_expected_parity;
+    logic                     clk;
+    logic                     rst_n;
+    logic                     cfg_we;
+    logic        [9*DATA_W-1:0] cfg_weights;
+    logic signed [ACC_W-1:0]  cfg_bias;
+    logic        [M0_W-1:0]   cfg_dyadic_m0;
+    logic        [SHIFT_W-1:0] cfg_dyadic_shift;
+    logic        [DATA_W-1:0] cfg_expected_parity;
 
-    logic                         s_axis_tvalid;
-    logic                         s_axis_tready;
-    logic signed [8:0][DATA_W-1:0] s_axis_window;
-    logic                         s_axis_tlast;
+    logic                     s_axis_tvalid;
+    logic                     s_axis_tready;
+    logic        [9*DATA_W-1:0] s_axis_window;
+    logic                     s_axis_tlast;
 
-    logic                         m_axis_tvalid;
-    logic                         m_axis_tready;
-    logic signed [DATA_W-1:0]     m_axis_tdata;
-    logic                         m_axis_tlast;
+    logic                     m_axis_tvalid;
+    logic                     m_axis_tready;
+    logic signed [DATA_W-1:0] m_axis_tdata;
+    logic                     m_axis_tlast;
 
-    logic                         sec_trojan_parity_err;
-    logic                         sec_axi_deadlock_irq;
+    logic                     sec_trojan_parity_err;
+    logic                     sec_axi_deadlock_irq;
 
     ai_cdsp_pe_array #(
         .DATA_W        (DATA_W),
@@ -86,10 +86,8 @@ module tb_ai_cdsp_pe_array;
         @(posedge clk);
 
         // 1. Load 9 weights = 2, bias = 16 -> XOR of nine 2s is 2
-        cfg_we = 1'b1;
-        for (int i = 0; i < 9; i++) begin
-            cfg_weights[i] = 8'sd2;
-        end
+        cfg_we              = 1'b1;
+        cfg_weights         = {9{8'sd2}};
         cfg_bias            = 24'sd16;
         cfg_dyadic_m0       = 15'd16384;
         cfg_dyadic_shift    = 5'd16;
@@ -103,17 +101,12 @@ module tb_ai_cdsp_pe_array;
             $fatal(1);
         end
 
-        // 2. Stream a 3x3 window with all pixels = 32
-        // Expected acc = 9 * (32 * 2) + 16 = 576 + 16 = 592
-        // Expected requant = RNE(592 * 16384 >> 16) = 592 / 4 = 148 -> clamped to 127 (ReLU6 INT8 max)
-        // Next window with all pixels = 10:
+        // 2. Stream a 3x3 window with all pixels = 10:
         // Expected acc = 9 * (10 * 2) + 16 = 180 + 16 = 196
         // Expected requant = RNE(196 * 16384 >> 16) = 196 / 4 = 49
         s_axis_tvalid = 1'b1;
-        for (int i = 0; i < 9; i++) begin
-            s_axis_window[i] = 8'sd10;
-        end
-        s_axis_tlast = 1'b1;
+        s_axis_window = {9{8'sd10}};
+        s_axis_tlast  = 1'b1;
         @(posedge clk);
         s_axis_tvalid = 1'b0;
         s_axis_tlast  = 1'b0;
